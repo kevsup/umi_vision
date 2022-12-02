@@ -9,7 +9,7 @@ blink.auth = Auth(json_load("credentials.json"))
 blink.start()
 
 camera = blink.cameras["Living room"]
-counter = 556
+counter = 1274
 
 def capture():
     try:
@@ -21,6 +21,6 @@ def capture():
         counter += 1
     except:
         pass
-    threading.Timer(50.0, capture).start()
+    threading.Timer(20.0, capture).start()
 
 capture()

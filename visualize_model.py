@@ -1,5 +1,7 @@
 from sleep_classifier import *
 
+root = 'data'
+
 if __name__ == '__main__':
     transform = transforms.Compose([transforms.Lambda(cropBottomLeft), transforms.Resize((224, 224)), transforms.ToTensor()])
 
@@ -8,5 +10,5 @@ if __name__ == '__main__':
     dataloader = torch.utils.data.DataLoader(dataset, batch_size = 64, shuffle=True, num_workers=0)
 
     class_names = ('sleep', 'wake')
-    model = torch.load('sleep_model.pth')
+    model = torch.load('sleep_model_great.pth')
     visualize_model(model, dataloader, class_names)

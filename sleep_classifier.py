@@ -84,7 +84,7 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model
+    return model, best_acc.cpu().numpy()
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -97,8 +97,7 @@ def imshow(inp, title=None):
     plt.show()
 
 def cropBottomLeft(image):
-    w, h = image.size
-    return transforms.functional.crop(image, h // 2, 0, h // 2, w // 2)
+    return transforms.functional.crop(image, 450, 190, 720-450, 425)
 
 def visualize_model(model, dataloader, class_names, num_images=1):
     was_training = model.training
@@ -124,35 +123,49 @@ if __name__ == '__main__':
     transform = transforms.Compose([transforms.Lambda(cropBottomLeft), transforms.Resize((224, 224)), transforms.ToTensor()])
 
     dataset = torchvision.datasets.ImageFolder(root, transform)
-    train_set, val_set = torch.utils.data.random_split(dataset, [0.7, 0.3])
 
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size = 64, shuffle=True, num_workers=0)
-    val_loader = torch.utils.data.DataLoader(val_set, batch_size = 64, shuffle=True, num_workers=0)
+    k = 2
+    highest_acc = 0
+    accuracies = []
+    for i in range(k):
+        train_set, val_set = torch.utils.data.random_split(dataset, [0.7, 0.3])
 
-    class_names = ('sleep', 'wake')
-    '''
-    # Get a batch of training data
-    inputs, classes = next(iter(train_loader))
-    # Make a grid from batch
-    out = torchvision.utils.make_grid(inputs)
-    imshow(out, title=[class_names[x] for x in classes])
-    pdb.set_trace()
-    '''
+        train_loader = torch.utils.data.DataLoader(train_set, batch_size = 32, shuffle=True, num_workers=12)
+        val_loader = torch.utils.data.DataLoader(val_set, batch_size = 32, shuffle=True, num_workers=12)
 
-    model = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.DEFAULT)
-    num_ftrs = model.fc.in_features
-    #model.fc = nn.Linear(num_ftrs, 2)
-    model.fc = nn.Sequential(nn.Linear(num_ftrs, num_ftrs), nn.ReLU(), nn.Dropout(0.5), nn.Linear(num_ftrs, 2))
-    print(model)
+        class_names = ('sleep', 'wake')
+        '''
+        # Get a batch of training data
+        inputs, classes = next(iter(train_loader))
+        # Make a grid from batch
+        out = torchvision.utils.make_grid(inputs)
+        imshow(out, title=[class_names[x] for x in classes])
+        pdb.set_trace()
+        '''
 
-    model = model.to(device)
-    weights = torch.tensor([0.35, 0.65]).cuda()
-    criterion = nn.CrossEntropyLoss(weight=weights)
-    # try focal loss later: https://pytorch.org/vision/0.12/_modules/torchvision/ops/focal_loss.html 
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-3)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
-    best_model = train_model(model, criterion, optimizer, \
-                exp_lr_scheduler, dataloaders={'train':train_loader, 'val':val_loader}, \
-                dataset_sizes={'train':len(train_set),'val':len(val_set)}, num_epochs=30)
+        model = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.DEFAULT)
+        num_ftrs = model.fc.in_features
+        #model.fc = nn.Linear(num_ftrs, 2)
+        model.fc = nn.Sequential(nn.Linear(num_ftrs, num_ftrs // 8), nn.ReLU(), nn.Dropout(0.5), nn.Linear(num_ftrs // 8, 2))
+        print(model)
 
-    torch.save(best_model, 'sleep_model.pth')
+        model = model.to(device)
+        weights = torch.tensor([0.35, 0.65]).cuda()
+        criterion = nn.CrossEntropyLoss(weight=weights)
+        # try focal loss later: https://pytorch.org/vision/0.12/_modules/torchvision/ops/focal_loss.html 
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
+        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+        best_model, best_acc = train_model(model, criterion, optimizer, \
+                    exp_lr_scheduler, dataloaders={'train':train_loader, 'val':val_loader}, \
+                    dataset_sizes={'train':len(train_set),'val':len(val_set)}, num_epochs=15)
+        accuracies.append(best_acc)
+        if highest_acc < best_acc:
+            highest_acc = best_acc
+            torch.save(best_model, 'sleep_model.pth')
+    print("accuracies:", accuracies)
+    alpha = 0.95
+    p = ((1 - alpha)/2.0)*100
+    lower = max(0.0, np.percentile(accuracies, p))
+    p = (alpha+((1-alpha)/2.0)) * 100
+    upper = min(1.0, np.percentile(accuracies, p))
+    print("95 percent confidence interval:", lower, "to", upper)
