@@ -130,8 +130,8 @@ if __name__ == '__main__':
     for i in range(k):
         train_set, val_set = torch.utils.data.random_split(dataset, [0.7, 0.3])
 
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size = 32, shuffle=True, num_workers=12)
-        val_loader = torch.utils.data.DataLoader(val_set, batch_size = 32, shuffle=True, num_workers=12)
+        train_loader = torch.utils.data.DataLoader(train_set, batch_size = 32, shuffle=True, num_workers=0)
+        val_loader = torch.utils.data.DataLoader(val_set, batch_size = 32, shuffle=True, num_workers=0)
 
         class_names = ('sleep', 'wake')
         '''
