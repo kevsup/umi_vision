@@ -23,10 +23,11 @@ def train_model(gpu, args):
     rank = args.nr * args.gpus + gpu
     dist.init_process_group(                                   
     	backend='gloo',                                         
-   		init_method='env://',                                   
     	world_size=args.world_size,                              
     	rank=rank                                               
     )    
+
+    print('Umi')
 
     torch.manual_seed(0)
     model = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.DEFAULT)
@@ -83,7 +84,7 @@ def train_model(gpu, args):
         print(f'Epoch {epoch}/{num_epochs - 1}')
         # Each epoch has a training and validation phase
         phases = ['train']
-        if gpu == 0:
+        if rank == 0:
             phases = ['train', 'val']
         for phase in phases:
             if phase == 'train':
@@ -140,7 +141,7 @@ def train_model(gpu, args):
         print()
 
     time_elapsed = time.time() - since
-    if gpu == 0:
+    if rank == 0:
         print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
         print(f'Best val Acc: {best_acc:4f}')
 
@@ -193,9 +194,7 @@ if __name__ == '__main__':
                         help='number of total epochs to run')
     args = parser.parse_args()
     args.world_size = args.gpus * args.nodes
-    if args.nr == 0:
-        os.environ['MASTER_ADDR'] = '127.0.0.1'
-    else:
-        os.environ['MASTER_ADDR'] = '73.63.240.36'
+    os.environ['MASTER_ADDR'] = '2601:647:5e80:4d60:7a30:73a0:f9d6:1102'
     os.environ['MASTER_PORT'] = '8888'
-    mp.spawn(train_model, nprocs = args.gpus, args=(args,))
+    train_model(0, args)
+    #mp.spawn(train_model, nprocs = args.gpus, args=(args,))
