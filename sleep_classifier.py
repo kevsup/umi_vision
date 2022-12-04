@@ -10,6 +10,7 @@ from torchvision import datasets, models, transforms
 import matplotlib.pyplot as plt
 import time
 import copy
+import argparse
 import pdb
 
 root = 'data'
@@ -120,11 +121,19 @@ def visualize_model(model, dataloader, class_names, num_images=1):
         model.train(mode=was_training)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-lr', '--lr', default = 0.01, type=float)
+    parser.add_argument('-wd', '--wd', default=0.01, type=float)
+    parser.add_argument('-s', '--step', default=10, type=int)
+    parser.add_argument('-g', '--gamma', default=0.1, type=float)
+    parser.add_argument('-e', '--epochs', default=15, type=int)
+    args = parser.parse_args()
+
     transform = transforms.Compose([transforms.Lambda(cropBottomLeft), transforms.Resize((224, 224)), transforms.ToTensor()])
 
     dataset = torchvision.datasets.ImageFolder(root, transform)
 
-    k = 2
+    k = 20
     highest_acc = 0
     accuracies = []
     for i in range(k):
@@ -153,15 +162,17 @@ if __name__ == '__main__':
         weights = torch.tensor([0.35, 0.65]).cuda()
         criterion = nn.CrossEntropyLoss(weight=weights)
         # try focal loss later: https://pytorch.org/vision/0.12/_modules/torchvision/ops/focal_loss.html 
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
-        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd)
+        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step, gamma=args.gamma)
         best_model, best_acc = train_model(model, criterion, optimizer, \
                     exp_lr_scheduler, dataloaders={'train':train_loader, 'val':val_loader}, \
-                    dataset_sizes={'train':len(train_set),'val':len(val_set)}, num_epochs=15)
+                    dataset_sizes={'train':len(train_set),'val':len(val_set)}, num_epochs=args.epochs)
         accuracies.append(best_acc)
         if highest_acc < best_acc:
             highest_acc = best_acc
             torch.save(best_model, 'sleep_model.pth')
+        with open('results_conf.txt', 'a') as f:
+            f.write(str(best_acc) + '\n')
     print("accuracies:", accuracies)
     alpha = 0.95
     p = ((1 - alpha)/2.0)*100
