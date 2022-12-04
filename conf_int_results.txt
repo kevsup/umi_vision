@@ -1,4 +1,5 @@
 -lr 0.09 -wd 0.01 -s 5 -g 0.1 -e 15
+accuracies:
 epoch 0 | Accuracy confidence interval: 0.5434017595307918 to 0.8651026392961877
 epoch 1 | Accuracy confidence interval: 0.7368768328445748 to 0.9663489736070382
 epoch 2 | Accuracy confidence interval: 0.7958211143695015 to 0.9780791788856306
@@ -50,6 +51,7 @@ epoch 13 | F1 confidence interval: 0.9352546349167824 to 0.9823529422283173
 epoch 14 | F1 confidence interval: 0.9346350789070129 to 0.9815602853894234
 
 -lr 0.09 -wd 0.1 -s 5 -g 0.1 -e 15
+accuracies:
 epoch 0 | Accuracy confidence interval: 0.5933284457478006 to 0.6645894428152492
 epoch 1 | Accuracy confidence interval: 0.5933284457478006 to 0.6645894428152492
 epoch 2 | Accuracy confidence interval: 0.5933284457478006 to 0.6645894428152492
@@ -101,3 +103,53 @@ epoch 13 | F1 confidence interval: 0.9462042599916458 to 0.9839430972933769
 epoch 14 | F1 confidence interval: 0.944005686044693 to 0.9833437651395798
 
 -lr 0.1 -wd 0.01 -s 10 -g 0.1 -e 15 
+accuracies:
+epoch 0 | Accuracy confidence interval: 0.5478739002932552 to 0.8951612903225806
+epoch 1 | Accuracy confidence interval: 0.5618035190615837 to 0.9532258064516129
+epoch 2 | Accuracy confidence interval: 0.787683284457478 to 0.9706744868035191
+epoch 3 | Accuracy confidence interval: 0.6010263929618769 to 0.9870234604105572
+epoch 4 | Accuracy confidence interval: 0.5719208211143697 to 0.9810117302052787
+epoch 5 | Accuracy confidence interval: 0.7743401759530792 to 0.9898093841642229
+epoch 6 | Accuracy confidence interval: 0.9195014662756599 to 0.9853372434017595
+epoch 7 | Accuracy confidence interval: 0.9486070381231672 to 0.9868768328445748
+epoch 8 | Accuracy confidence interval: 0.89816715542522 to 0.9853372434017595
+epoch 9 | Accuracy confidence interval: 0.8631964809384165 to 0.9868768328445748
+epoch 10 | Accuracy confidence interval: 0.9529325513196482 to 0.9898093841642229
+epoch 11 | Accuracy confidence interval: 0.9529325513196482 to 0.9898093841642229
+epoch 12 | Accuracy confidence interval: 0.9560117302052786 to 0.9898093841642229
+epoch 13 | Accuracy confidence interval: 0.9560117302052786 to 0.98841642228739
+epoch 14 | Accuracy confidence interval: 0.9513929618768329 to 0.9912023460410557
+
+auroc:
+epoch 0 | AUROC confidence interval: 0.7872264355421067 to 0.9501138374209404
+epoch 1 | AUROC confidence interval: 0.9076692059636117 to 0.9945526942610741
+epoch 2 | AUROC confidence interval: 0.9464904174208641 to 0.9971712842583657
+epoch 3 | AUROC confidence interval: 0.9310649111866951 to 0.9989056572318077
+epoch 4 | AUROC confidence interval: 0.921294379234314 to 0.9976718068122864
+epoch 5 | AUROC confidence interval: 0.9581433802843095 to 0.9992196962237359
+epoch 6 | AUROC confidence interval: 0.9756783932447434 to 0.9993382737040519
+epoch 7 | AUROC confidence interval: 0.9877233147621155 to 0.9994384095072746
+epoch 8 | AUROC confidence interval: 0.9752889528870583 to 0.9994828477501869
+epoch 9 | AUROC confidence interval: 0.921835918724537 to 0.9995716780424118
+epoch 10 | AUROC confidence interval: 0.9871337175369262 to 0.9995742470026017
+epoch 11 | AUROC confidence interval: 0.9866660356521606 to 0.9995763137936592
+epoch 12 | AUROC confidence interval: 0.9877956733107567 to 0.9996099203824997
+epoch 13 | AUROC confidence interval: 0.9880372390151024 to 0.9995563179254532
+epoch 14 | AUROC confidence interval: 0.9884995922446251 to 0.9996121421456337
+
+F1:
+epoch 0 | F1 confidence interval: 0.3878652691841127 to 0.8431944042444228
+epoch 1 | F1 confidence interval: 0.32458915114402787 to 0.9379279434680938
+epoch 2 | F1 confidence interval: 0.570736338198185 to 0.9590395331382752
+epoch 3 | F1 confidence interval: 0.5481547549366952 to 0.983345578610897
+epoch 4 | F1 confidence interval: 0.6482116580009462 to 0.9735219240188598
+epoch 5 | F1 confidence interval: 0.6958878949284554 to 0.985633884370327
+epoch 6 | F1 confidence interval: 0.8810661643743516 to 0.9787353500723839
+epoch 7 | F1 confidence interval: 0.931956547498703 to 0.9814101308584213
+epoch 8 | F1 confidence interval: 0.8577830329537391 to 0.9790043398737908
+epoch 9 | F1 confidence interval: 0.8053109392523766 to 0.9818480312824249
+epoch 10 | F1 confidence interval: 0.935854797065258 to 0.9855790495872497
+epoch 11 | F1 confidence interval: 0.9355342999100685 to 0.9862033054232597
+epoch 12 | F1 confidence interval: 0.9397147506475448 to 0.9862033054232597
+epoch 13 | F1 confidence interval: 0.940002390742302 to 0.9837781950831413
+epoch 14 | F1 confidence interval: 0.934154549241066 to 0.987558813393116
