@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import time
 import copy
 import argparse
+from torchmetrics.classification import BinaryAUROC, BinaryF1Score
 import pdb
 
 root = 'data'
@@ -21,8 +22,14 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-
+    auroc = BinaryAUROC(thresholds=None)
+    f1 = BinaryF1Score().cuda()
+    accs = []
+    aurocs = []
+    f1s = []
     for epoch in range(num_epochs):
+        pred_probs = []
+        all_labels = []
         print(f'Epoch {epoch}/{num_epochs - 1}')
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
@@ -52,6 +59,10 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
                     _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
 
+                    if phase == 'val':
+                        pred_probs.append(nn.Softmax(dim=1)(outputs)[:,1])
+                        all_labels.append(labels)
+
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
@@ -64,11 +75,22 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
                 pos_recall[0] += torch.sum(preds[labels.data == 1] == labels.data[labels.data == 1])
                 neg_recall[1] += torch.sum(labels.data == 0)
                 pos_recall[1] += torch.sum(labels.data == 1)
-            if phase == 'train':
-                scheduler.step()
 
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc = running_corrects.double() / dataset_sizes[phase]
+
+            if phase == 'train':
+                scheduler.step()
+            elif phase == 'val':
+                pred_probs = torch.cat(pred_probs)
+                pred_labels = (pred_probs > 0.5).int()
+                all_labels = torch.cat(all_labels)
+                curr_auroc = auroc(pred_probs, all_labels)
+                curr_f1 = f1(pred_labels, all_labels)
+                aurocs.append(curr_auroc.cpu().numpy())
+                f1s.append(curr_f1.cpu().numpy())
+                accs.append(epoch_acc.cpu().numpy())
+                print(f'val AUROC: {curr_auroc}, F1 score: {curr_f1}')
 
             print(f'{phase} Loss: {epoch_loss:.4f} | Acc: {epoch_acc:.4f} | Neg recall: {neg_recall[0]/neg_recall[1]:.4f} | Pos recall: {pos_recall[0]/pos_recall[1]:.4f}')
 
@@ -85,7 +107,9 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    return model, best_acc.cpu().numpy()
+    #return model, best_acc.cpu().numpy()
+    #return model, epoch_acc.cpu().numpy(), auroc(pred_probs, all_labels).cpu().numpy(), f1(pred_labels, all_labels).cpu().numpy()
+    return model, accs, aurocs, f1s
 
 def imshow(inp, title=None):
     """Imshow for Tensor."""
@@ -120,6 +144,18 @@ def visualize_model(model, dataloader, class_names, num_images=1):
 
         model.train(mode=was_training)
 
+def ci(arr, epochs, metric_name):
+    for i in range(epochs):
+        vals = []
+        for val in arr:
+            vals.append(val[i])
+        alpha = 0.95
+        p = ((1 - alpha)/2.0)*100
+        lower = max(0.0, np.percentile(vals, p))
+        p = (alpha+((1-alpha)/2.0)) * 100
+        upper = min(1.0, np.percentile(vals, p))
+        print("epoch", i, "|", metric_name, "confidence interval:", lower, "to", upper)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-lr', '--lr', default = 0.01, type=float)
@@ -136,6 +172,8 @@ if __name__ == '__main__':
     k = 20
     highest_acc = 0
     accuracies = []
+    aurocs = []
+    f1s = []
     for i in range(k):
         train_set, val_set = torch.utils.data.random_split(dataset, [0.7, 0.3])
 
@@ -164,19 +202,23 @@ if __name__ == '__main__':
         # try focal loss later: https://pytorch.org/vision/0.12/_modules/torchvision/ops/focal_loss.html 
         optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd)
         exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step, gamma=args.gamma)
-        best_model, best_acc = train_model(model, criterion, optimizer, \
+        best_model, new_accs, new_aurocs, new_f1s = train_model(model, criterion, optimizer, \
                     exp_lr_scheduler, dataloaders={'train':train_loader, 'val':val_loader}, \
                     dataset_sizes={'train':len(train_set),'val':len(val_set)}, num_epochs=args.epochs)
-        accuracies.append(best_acc)
+        accuracies.append(new_accs)
+        aurocs.append(new_aurocs)
+        f1s.append(new_f1s)
+        '''
         if highest_acc < best_acc:
             highest_acc = best_acc
             torch.save(best_model, 'sleep_model.pth')
         with open('results_conf.txt', 'a') as f:
             f.write(str(best_acc) + '\n')
-    print("accuracies:", accuracies)
-    alpha = 0.95
-    p = ((1 - alpha)/2.0)*100
-    lower = max(0.0, np.percentile(accuracies, p))
-    p = (alpha+((1-alpha)/2.0)) * 100
-    upper = min(1.0, np.percentile(accuracies, p))
-    print("95 percent confidence interval:", lower, "to", upper)
+        '''
+
+    print("accuracies:")
+    ci(accuracies, args.epochs, "Accuracy")
+    print("\nauroc:")
+    ci(aurocs, args.epochs, "AUROC")
+    print("\nF1:")
+    ci(f1s, args.epochs, "F1")
