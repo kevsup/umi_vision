@@ -107,8 +107,6 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    #return model, best_acc.cpu().numpy()
-    #return model, epoch_acc.cpu().numpy(), auroc(pred_probs, all_labels).cpu().numpy(), f1(pred_labels, all_labels).cpu().numpy()
     return model, accs, aurocs, f1s
 
 def imshow(inp, title=None):
@@ -182,7 +180,7 @@ if __name__ == '__main__':
 
         class_names = ('sleep', 'wake')
         '''
-        # Get a batch of training data
+        # visualize transforms
         inputs, classes = next(iter(train_loader))
         # Make a grid from batch
         out = torchvision.utils.make_grid(inputs)

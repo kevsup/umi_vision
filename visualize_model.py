@@ -7,8 +7,8 @@ if __name__ == '__main__':
 
     dataset = torchvision.datasets.ImageFolder(root, transform)
 
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size = 64, shuffle=True, num_workers=0)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size = 32, shuffle=True, num_workers=0)
 
     class_names = ('sleep', 'wake')
-    model = torch.load('sleep_model_great.pth')
+    model = torch.load('sleep_model.pth')
     visualize_model(model, dataloader, class_names)

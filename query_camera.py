@@ -9,7 +9,7 @@ blink.auth = Auth(json_load("credentials.json"))
 blink.start()
 
 camera = blink.cameras["Living room"]
-counter = 1274
+counter = 0
 
 def capture():
     try:
