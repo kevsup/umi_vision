@@ -15,7 +15,10 @@ from torchmetrics.classification import BinaryAUROC, BinaryF1Score
 import pdb
 
 root = 'data'
-device = "cuda" if torch.cuda.is_available() else "cpu"
+#device = "cuda" if torch.cuda.is_available() else "cpu"
+RTX3090 = 0
+QUADROM4000 = 1
+device = QUADROM4000
 
 def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_sizes, num_epochs=25):
     since = time.time()
@@ -23,7 +26,7 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, dataset_siz
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     auroc = BinaryAUROC(thresholds=None)
-    f1 = BinaryF1Score().cuda()
+    f1 = BinaryF1Score().to(device)
     accs = []
     aurocs = []
     f1s = []
@@ -195,7 +198,7 @@ if __name__ == '__main__':
         print(model)
 
         model = model.to(device)
-        weights = torch.tensor([0.35, 0.65]).cuda()
+        weights = torch.tensor([0.35, 0.65]).to(device)
         criterion = nn.CrossEntropyLoss(weight=weights)
         # try focal loss later: https://pytorch.org/vision/0.12/_modules/torchvision/ops/focal_loss.html 
         optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd)

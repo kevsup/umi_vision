@@ -22,7 +22,7 @@ root = 'data'
 def train_model(gpu, args):
     rank = args.nr * args.gpus + gpu
     dist.init_process_group(                                   
-    	backend='gloo',                                         
+    	backend='nccl',                                         
     	world_size=args.world_size,                              
     	rank=rank                                               
     )    
@@ -53,7 +53,7 @@ def train_model(gpu, args):
         rank = rank
     )
 
-    train_loader = torch.utils.data.DataLoader(train_set, batch_size = 32, shuffle=False, num_workers=0, sampler=train_sampler)
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size = 16, shuffle=False, num_workers=0, sampler=train_sampler)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size = 32, shuffle=False, num_workers=0)
 
     class_names = ('sleep', 'wake')
@@ -194,7 +194,7 @@ if __name__ == '__main__':
                         help='number of total epochs to run')
     args = parser.parse_args()
     args.world_size = args.gpus * args.nodes
-    os.environ['MASTER_ADDR'] = '2601:647:5e80:4d60:7a30:73a0:f9d6:1102'
+    os.environ['MASTER_ADDR'] = '192.168.0.24'
     os.environ['MASTER_PORT'] = '8888'
-    train_model(0, args)
-    #mp.spawn(train_model, nprocs = args.gpus, args=(args,))
+    #train_model(0, args)
+    mp.spawn(train_model, nprocs = args.gpus, args=(args,))

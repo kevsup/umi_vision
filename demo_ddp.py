@@ -22,11 +22,11 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 # For TcpStore, same way as on Linux.
 
 def setup(rank, world_size):
-    os.environ['MASTER_ADDR'] = '2601:647:5e80:4d60:7a30:73a0:f9d6:1102'
+    os.environ['MASTER_ADDR'] = '192.168.0.24'
     os.environ['MASTER_PORT'] = '8888'
 
     # initialize the process group
-    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
 
 def cleanup():
     dist.destroy_process_group()
@@ -69,4 +69,4 @@ def run_demo(demo_fn, world_size):
              join=True)
 
 if __name__ == "__main__":
-    demo_basic(0, 1)
+    demo_basic(0, 2)
